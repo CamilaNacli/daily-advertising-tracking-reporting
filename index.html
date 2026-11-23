@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Advertising Performance — Demo Dashboard</title>
+<meta name="description" content="Portfolio demonstration with fictional data: daily advertising tracking and reporting dashboard.">
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+body{margin:0;background:#f4f6f9}
+#ads{--bg:#f4f6f9;--card:#fff;--ink:#1b2433;--muted:#5f6b7d;--line:#e3e8ef;--navy:#1f3a5f;--green:#2f7d4e;--red:#b23b30;--amber:#b7791f;--violet:#6d5fd0;
+  background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+#ads *{box-sizing:border-box}
+#ads .wrap{max-width:1180px;margin:0 auto;padding:18px 16px 36px}
+#ads .notice{display:flex;gap:6px 14px;align-items:baseline;justify-content:space-between;flex-wrap:wrap;color:var(--muted);font-size:12px;padding:0 2px 10px;margin-bottom:12px;border-bottom:1px solid var(--line)}
+#ads .notice b{color:var(--ink);font-weight:600}
+#ads .notice a{color:var(--navy);font-weight:600;white-space:nowrap}
+#ads header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+#ads h1{font-size:22px;margin:0;line-height:1.25;font-weight:700}
+#ads .sub{color:var(--muted);font-size:13px;margin-top:2px}
+#ads .btn{background:var(--navy);color:#fff;border:1px solid var(--navy);border-radius:8px;padding:8px 14px;font:600 13px Inter,sans-serif;cursor:pointer;line-height:1.2;min-height:38px}
+#ads .btn.ghost{background:#fff;color:var(--navy);border-color:var(--line)}
+#ads .btn:disabled{opacity:.45;cursor:default}
+#ads button:focus-visible,#ads select:focus-visible,#ads input:focus-visible,#ads a:focus-visible{outline:2px solid #7aa2d6;outline-offset:2px}
+#ads .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+#ads .filters{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) auto;gap:12px;align-items:end}
+#ads label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:4px;white-space:nowrap}
+#ads select,#ads input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:13px Inter,sans-serif;background:#fff;color:var(--ink);height:38px}
+#ads .meta{font-size:12px;color:var(--muted);margin-top:10px}
+#ads .err{color:#a33a30;background:#fdf0ee;border:1px solid #f3c7c1;border-radius:8px;padding:8px 10px;font-size:13px;margin-top:10px}
+#ads .err:empty{display:none}
+#ads h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:28px 0 10px;color:var(--navy);line-height:1.3}
+#ads h2 .scope{text-transform:none;letter-spacing:0;color:var(--muted);font-weight:400}
+#ads .card h3{font-size:14px;font-weight:600;margin:0 0 2px}
+#ads .card .hint{font-size:12px;color:var(--muted);margin:0 0 10px}
+#ads .grid{display:grid;gap:12px}
+#ads .grid>*{min-width:0}
+#ads .kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+#ads .funnel{grid-template-columns:repeat(8,minmax(0,1fr))}
+#ads .two{grid-template-columns:1fr 1fr}
+#ads .kpi{border-left:4px solid var(--navy);padding:12px 14px}
+#ads .kpi .lbl{font-size:11px;font-weight:600;text-transform:uppercase;color:var(--muted);letter-spacing:.04em}
+#ads .kpi .val{font-size:24px;font-weight:700;margin:2px 0 0;font-variant-numeric:tabular-nums;line-height:1.25}
+#ads .kpi .note{font-size:12px;color:var(--muted)}
+#ads .kpi.hl{border-left-color:var(--green)}
+#ads .mini{padding:10px 12px}
+#ads .mini .lbl{font-size:10.5px;font-weight:600;text-transform:uppercase;color:var(--muted);letter-spacing:.04em}
+#ads .mini .val{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+#ads .pos{color:var(--green)} #ads .neg{color:var(--red)}
+#ads .ext{color:var(--violet);font-weight:700;margin-left:3px;cursor:help}
+#ads .chart{position:relative;height:260px}
+#ads .chart.tall{height:300px}
+#ads .nodata{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:var(--muted);font-size:13px;background:rgba(255,255,255,.85)}
+#ads .tbl{overflow:auto;border:1px solid var(--line);border-radius:8px;-webkit-overflow-scrolling:touch}
+#ads table{width:100%;border-collapse:collapse;font-size:13px}
+#ads th{position:sticky;top:0;z-index:1;background:#f7f9fc;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+#ads td{padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+#ads td.num,#ads th.num{text-align:right;font-variant-numeric:tabular-nums}
+#ads th:first-child,#ads td:first-child{position:sticky;left:0;background:#fff;z-index:2}
+#ads th:first-child{background:#f7f9fc;z-index:3}
+#ads tr.total td{font-weight:700;background:#f1f4f8}
+#ads .pager{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+#ads .pager .btns{display:flex;gap:8px}
+#ads footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+#ads footer a{color:var(--navy)}
+@media (max-width:1000px){#ads .filters{grid-template-columns:repeat(3,minmax(0,1fr))}#ads .funnel{grid-template-columns:repeat(4,minmax(0,1fr))}#ads .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:760px){#ads .two{grid-template-columns:1fr}#ads .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){#ads .filters{grid-template-columns:1fr 1fr}#ads .filters .wide{grid-column:1/-1}#ads .kpi .val{font-size:20px}#ads .funnel{grid-template-columns:repeat(2,minmax(0,1fr))}#ads .chart{height:230px}#ads h1{font-size:19px}}
+</style>
+</head>
+<body>
+<div id="ads">
+<div class="wrap">
+  <div class="notice"><span><b>Portfolio demonstration</b> · fictional products, campaigns and figures · amounts in USD · <span class="ext" title="Demo addition">◆</span> marks additions made for this demo</span><a href="https://github.com/CamilaNacli/daily-advertising-tracking-reporting">Read the case study →</a></div>
+  <header>
+    <div><h1>Daily Advertising Performance</h1><div class="sub">Daily tracking by date, product and campaign · reads <code>data/daily-performance.csv</code></div></div>
+    <button class="btn" id="reload" type="button">↻ Refresh data</button>
+  </header>
+
+  <section class="card" aria-label="Filters">
+    <div class="filters">
+      <div><label for="fStart">Start date</label><input type="date" id="fStart"></div>
+      <div><label for="fEnd">End date</label><input type="date" id="fEnd"></div>
+      <div><label for="fMonth">Month</label><select id="fMonth"><option value="">All months</option></select></div>
+      <div><label for="fProduct">Product</label><select id="fProduct"><option value="">All products</option></select></div>
+      <div class="wide"><label for="fCamp">Campaign</label><input type="search" id="fCamp" placeholder="Search campaign…" list="campList" autocomplete="off"><datalist id="campList"></datalist></div>
+      <div class="wide"><button class="btn ghost" id="clear" type="button" style="width:100%">✕ Clear filters</button></div>
+    </div>
+    <div class="meta" id="meta" aria-live="polite"></div>
+    <div class="err" id="err" role="alert"></div>
+  </section>
+
+  <h2>Overview <span class="scope" id="scope"></span></h2>
+  <div class="grid kpis" id="kpis"></div>
+  <h2>Funnel metrics <span class="scope">for the selected period</span></h2>
+  <div class="grid funnel" id="funnel"></div>
+
+  <h2>Daily ad spend vs gross revenue</h2>
+  <div class="card"><div class="chart tall"><canvas id="cDaily" aria-label="Daily ad spend versus gross revenue"></canvas><div class="nodata">No data for the selected filters</div></div></div>
+
+  <h2>Monthly summary</h2>
+  <div class="grid two">
+    <div class="card"><h3>Ad spend, net revenue and profit by month</h3><p class="hint">Monthly ROI = total profit after ad spend ÷ total ad spend.</p><div class="chart"><canvas id="cMonth"></canvas><div class="nodata">No data</div></div></div>
+    <div class="card"><h3>Summary by month</h3><p class="hint">Totals for the selected filters.</p><div class="tbl"><table id="tMonth"></table></div></div>
+  </div>
+
+  <h2>Performance by day of week</h2>
+  <div class="grid two">
+    <div class="card"><h3>Profit after ad spend and ROI by weekday</h3><p class="hint">All selected dates grouped by Monday … Sunday.</p><div class="chart"><canvas id="cDow"></canvas><div class="nodata">No data</div></div></div>
+    <div class="card"><h3>Weekday table</h3><p class="hint">Records = campaign-days.</p><div class="tbl"><table id="tDow"></table></div></div>
+  </div>
+
+  <h2>Performance by calendar week <span class="ext" title="Demo addition">◆</span> <span class="scope">· Monday to Sunday</span></h2>
+  <div class="grid two">
+    <div class="card"><h3>Profit after ad spend and ROI by calendar week</h3><p class="hint">Different from the weekday view: each bar is one calendar week. First and last weeks can be partial.</p><div class="chart"><canvas id="cWeek"></canvas><div class="nodata">No data</div></div></div>
+    <div class="card"><h3>Calendar week table</h3><p class="hint">Week starting on Monday.</p><div class="tbl" style="max-height:340px"><table id="tWeek"></table></div></div>
+  </div>
+
+  <h2>Daily detail by campaign</h2>
+  <div class="card">
+    <div class="tbl" style="max-height:520px"><table id="tDaily"></table></div>
+    <div class="pager"><span id="pinfo"></span><span class="btns"><button class="btn ghost" id="prev" type="button">← Previous</button><button class="btn ghost" id="next" type="button">Next →</button></span></div>
+  </div>
+
+  <footer>N/A = the denominator is zero (for example, CPA on a day with no sales). Net Revenue = Gross Revenue − Refunds − Chargebacks · Profit After Ad Spend = Net Revenue − Ad Spend · ROI After Ad Spend = Profit ÷ Ad Spend. Full definitions: <a href="https://github.com/CamilaNacli/daily-advertising-tracking-reporting/blob/main/docs/metrics.md">docs/metrics.md</a>.</footer>
+</div>
+</div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const USD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  const USD0 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  const INT = new Intl.NumberFormat('en-US');
+  const NA = 'N/A';
+  const div = (a, b) => (b === 0 ? null : a / b);
+  const money = v => (v === null ? NA : USD.format(v));
+  const pct = v => (v === null ? NA : (v * 100).toFixed(1) + '%');
+  const roiTxt = v => (v === null ? NA : (v > 0 ? '+' : '') + (v * 100).toFixed(1) + '%');
+  const cls = v => (v === null ? '' : v < 0 ? 'neg' : 'pos');
+  const DOW = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const mLabel = m => MONTHS[+m.slice(5, 7) - 1] + ' ' + m.slice(0, 4);
+  const dLabel = d => MONTHS[+d.slice(5, 7) - 1] + ' ' + +d.slice(8, 10);
+  const weekStart = d => { const t = new Date(d + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() - ((t.getUTCDay() + 6) % 7)); return t.toISOString().slice(0, 10); };
+  const COLORS = { spend: '#1f3a5f', gross: '#2f7d4e', net: '#6d5fd0', profit: '#b7791f', neg: '#c0564b', roi: '#1b2433' };
+  let ALL = [], page = 0; const PAGE = 30; const charts = {};
+
+  const parse = txt => { const lines = txt.trim().split(/\r?\n/); const H = lines.shift().split(',');
+    const need = ['Date', 'Product', 'Campaign', 'Ad Spend', 'Gross Revenue', 'Refunds', 'Chargebacks', 'Clicks', 'Hops', 'OFI', 'Sales', 'Upsell Sales'];
+    const miss = need.filter(h => !H.includes(h)); if (miss.length) throw new Error('Missing columns: ' + miss.join(', '));
+    const ix = Object.fromEntries(H.map((h, i) => [h, i]));
+    return lines.map(l => { const c = l.split(','); const n = k => +c[ix[k]] || 0;
+      const r = { date: c[ix.Date], product: c[ix.Product], campaign: c[ix.Campaign], spend: n('Ad Spend'), gross: n('Gross Revenue'), refunds: n('Refunds'), cbs: n('Chargebacks'), clicks: n('Clicks'), hops: n('Hops'), ofi: n('OFI'), sales: n('Sales'), ups: n('Upsell Sales') };
+      r.dow = DOW[(new Date(r.date + 'T00:00:00Z').getUTCDay() + 6) % 7]; r.month = r.date.slice(0, 7); r.week = weekStart(r.date); return r; }).filter(r => /^\d{4}-\d{2}-\d{2}$/.test(r.date)); };
+
+  const agg = R => { const t = { n: R.length, days: new Set(), spend: 0, gross: 0, refunds: 0, cbs: 0, clicks: 0, hops: 0, ofi: 0, sales: 0, ups: 0 };
+    for (const r of R) { t.days.add(r.date); for (const k of ['spend', 'gross', 'refunds', 'cbs', 'clicks', 'hops', 'ofi', 'sales', 'ups']) t[k] += r[k]; }
+    t.net = t.gross - t.refunds - t.cbs; t.profit = t.net - t.spend; t.roi = div(t.profit, t.spend); t.cpa = div(t.spend, t.sales); t.aov = div(t.gross, t.sales); t.upRate = div(t.ups, t.sales);
+    t.lpCtr = div(t.hops, t.clicks); t.ofConv = div(t.sales, t.ofi); t.cpc = div(t.spend, t.clicks); t.hopsSale = div(t.hops, t.sales); t.hopsOfi = div(t.hops, t.ofi); return t; };
+  const group = (R, key) => { const m = new Map(); for (const r of R) { const k = r[key]; if (!m.has(k)) m.set(k, []); m.get(k).push(r); } return m; };
+
+  const filtered = () => { const s = $('fStart').value, e = $('fEnd').value, mo = $('fMonth').value, p = $('fProduct').value, q = $('fCamp').value.trim().toLowerCase();
+    $('err').textContent = s && e && s > e ? 'Start date is after end date — no records match.' : '';
+    return ALL.filter(r => (!s || r.date >= s) && (!e || r.date <= e) && (!mo || r.month === mo) && (!p || r.product === p) && (!q || r.campaign.toLowerCase().includes(q))); };
+
+  const kpi = (lbl, val, note, extra = '', ext = false) => `<div class="card kpi ${extra}"><div class="lbl">${lbl}${ext ? '<span class="ext" title="Demo addition">◆</span>' : ''}</div><div class="val">${val}</div><div class="note">${note}</div></div>`;
+  const mini = (lbl, val) => `<div class="card mini"><div class="lbl">${lbl}</div><div class="val">${val}</div></div>`;
+
+  const table = (el, head, rows, total) => { el.innerHTML = '<thead><tr>' + head.map(([h, num]) => `<th${num ? ' class="num"' : ''}>${h}</th>`).join('') + '</tr></thead><tbody>' +
+    (rows.length ? rows.map(r => '<tr>' + r.map((c, i) => `<td${head[i][1] ? ' class="num"' : ''}>${c}</td>`).join('') + '</tr>').join('') : `<tr><td colspan="${head.length}">No records for the selected filters.</td></tr>`) +
+    (total ? '<tr class="total">' + total.map((c, i) => `<td${head[i][1] ? ' class="num"' : ''}>${c}</td>`).join('') + '</tr>' : '') + '</tbody>'; };
+  const roiCell = v => `<span class="${cls(v)}">${roiTxt(v)}</span>`;
+  const sumHead = first => [[first], ['Records', 1], ['Ad Spend', 1], ['Gross Revenue', 1], ['Refunds', 1], ['Chargebacks<span class="ext" title="Demo addition">◆</span>', 1], ['Net Revenue', 1], ['Profit After Ad Spend', 1], ['ROI', 1], ['Sales', 1], ['Upsell Sales', 1], ['Upsell Rate', 1], ['CPA', 1], ['AOV', 1]];
+  const sumRow = (label, t) => [label, INT.format(t.n), money(t.spend), money(t.gross), money(t.refunds), money(t.cbs), money(t.net), `<span class="${cls(t.profit)}">${money(t.profit)}</span>`, roiCell(t.roi), INT.format(t.sales), INT.format(t.ups), pct(t.upRate), money(t.cpa), money(t.aov)];
+
+  const chart = (id, cfg) => { if (charts[id]) charts[id].destroy(); charts[id] = new Chart($(id), cfg); };
+  const noData = (id, empty) => { $(id).parentElement.querySelector('.nodata').style.display = empty ? 'flex' : 'none'; };
+  const baseOpts = (yMoney = true) => ({ responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Inter', size: 11 } } }, tooltip: { callbacks: { label: c => c.dataset.label + ': ' + (c.dataset.yAxisID === 'y2' ? roiTxt(c.raw) : money(c.raw)) } } },
+    scales: { x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 0, autoSkip: true } }, y: { ticks: { font: { size: 11 }, callback: v => USD0.format(v) }, grid: { color: '#eef1f5' } } } });
+  const roiAxis = { position: 'right', grid: { display: false }, ticks: { font: { size: 11 }, callback: v => (v * 100).toFixed(0) + '%' } };
+
+  const render = () => {
+    const R = filtered(), T = agg(R);
+    const dates = R.map(r => r.date).sort();
+    $('meta').textContent = R.length ? `${INT.format(R.length)} campaign-day records · ${T.days.size} days · ${dLabel(dates[0])}, ${dates[0].slice(0, 4)} – ${dLabel(dates[dates.length - 1])}, ${dates[dates.length - 1].slice(0, 4)}` : 'No records match the selected filters.';
+    $('scope').textContent = R.length ? '· selected period' : '';
+    $('kpis').innerHTML = [
+      kpi('Ad Spend', money(T.spend), `${T.days.size} days of campaigns`),
+      kpi('Gross Revenue', money(T.gross), T.spend ? `${(T.gross / T.spend * 100).toFixed(1)}% of ad spend` : NA),
+      kpi('Net Revenue', money(T.net), 'after refunds and chargebacks'),
+      kpi('Profit After Ad Spend', `<span class="${cls(T.profit)}">${money(T.profit)}</span>`, 'net revenue − ad spend', 'hl'),
+      kpi('ROI After Ad Spend', `<span class="${cls(T.roi)}">${roiTxt(T.roi)}</span>`, 'profit ÷ ad spend', 'hl'),
+      kpi('Sales', INT.format(T.sales), `${INT.format(T.ups)} upsell sales`),
+      kpi('Upsell Rate', pct(T.upRate), 'upsell sales ÷ sales'),
+      kpi('CPA', money(T.cpa), 'ad spend ÷ sales'),
+      kpi('AOV', money(T.aov), 'gross revenue ÷ sales'),
+      kpi('Refunds', money(T.refunds), T.gross ? `${(T.refunds / T.gross * 100).toFixed(1)}% of gross revenue` : NA),
+      kpi('Chargebacks', money(T.cbs), T.gross ? `${(T.cbs / T.gross * 100).toFixed(2)}% of gross revenue` : NA, '', true),
+      kpi('Campaigns', INT.format(new Set(R.map(r => r.campaign)).size), `${new Set(R.map(r => r.product)).size} product(s)`),
+    ].join('');
+    $('funnel').innerHTML = [mini('Clicks', INT.format(T.clicks)), mini('Hops', INT.format(T.hops)), mini('OFI', INT.format(T.ofi)), mini('Landing Page CTR', pct(T.lpCtr)), mini('Order Form Conv.', pct(T.ofConv)), mini('CPC', money(T.cpc)), mini('Hops per Sale', T.hopsSale === null ? NA : T.hopsSale.toFixed(1)), mini('Hops per OFI', T.hopsOfi === null ? NA : T.hopsOfi.toFixed(1))].join('');
+
+    // daily chart
+    const byDay = [...group(R, 'date').entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([d, rs]) => [d, agg(rs)]);
+    noData('cDaily', !byDay.length);
+    chart('cDaily', { type: 'line', data: { labels: byDay.map(([d]) => dLabel(d)), datasets: [
+      { label: 'Ad Spend', data: byDay.map(([, t]) => +t.spend.toFixed(2)), borderColor: COLORS.spend, backgroundColor: COLORS.spend, borderWidth: 2, pointRadius: 0, tension: .25 },
+      { label: 'Gross Revenue', data: byDay.map(([, t]) => +t.gross.toFixed(2)), borderColor: COLORS.gross, backgroundColor: COLORS.gross, borderWidth: 2, pointRadius: 0, tension: .25 }] }, options: baseOpts() });
+
+    // monthly
+    const byMonth = [...group(R, 'month').entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([m, rs]) => [m, agg(rs)]);
+    noData('cMonth', !byMonth.length);
+    chart('cMonth', { type: 'bar', data: { labels: byMonth.map(([m]) => mLabel(m)), datasets: [
+      { label: 'Ad Spend', data: byMonth.map(([, t]) => +t.spend.toFixed(2)), backgroundColor: COLORS.spend },
+      { label: 'Net Revenue', data: byMonth.map(([, t]) => +t.net.toFixed(2)), backgroundColor: COLORS.net },
+      { label: 'Profit After Ad Spend', data: byMonth.map(([, t]) => +t.profit.toFixed(2)), backgroundColor: byMonth.map(([, t]) => (t.profit < 0 ? COLORS.neg : COLORS.profit)) }] }, options: baseOpts() });
+    table($('tMonth'), sumHead('Month'), byMonth.map(([m, t]) => sumRow(mLabel(m), t)), byMonth.length > 1 ? sumRow('Total', T) : null);
+
+    // weekday
+    const g = group(R, 'dow'); const byDow = DOW.filter(d => g.has(d)).map(d => [d, agg(g.get(d))]);
+    noData('cDow', !byDow.length);
+    const dualOpts = () => { const o = baseOpts(); o.scales.y2 = roiAxis; return o; };
+    chart('cDow', { type: 'bar', data: { labels: byDow.map(([d]) => d.slice(0, 3)), datasets: [
+      { type: 'line', label: 'ROI', data: byDow.map(([, t]) => t.roi), yAxisID: 'y2', borderColor: COLORS.roi, backgroundColor: COLORS.roi, pointRadius: 3, borderWidth: 2 },
+      { label: 'Profit After Ad Spend', data: byDow.map(([, t]) => +t.profit.toFixed(2)), backgroundColor: byDow.map(([, t]) => (t.profit < 0 ? COLORS.neg : COLORS.profit)) }] }, options: dualOpts() });
+    table($('tDow'), [['Day'], ['Records', 1], ['Ad Spend', 1], ['Gross Revenue', 1], ['Net Revenue', 1], ['Profit', 1], ['ROI', 1], ['Sales', 1], ['Upsell Rate', 1], ['CPA', 1]],
+      byDow.map(([d, t]) => [d, INT.format(t.n), money(t.spend), money(t.gross), money(t.net), `<span class="${cls(t.profit)}">${money(t.profit)}</span>`, roiCell(t.roi), INT.format(t.sales), pct(t.upRate), money(t.cpa)]));
+
+    // calendar week
+    const byWeek = [...group(R, 'week').entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([w, rs]) => [w, agg(rs)]);
+    noData('cWeek', !byWeek.length);
+    chart('cWeek', { type: 'bar', data: { labels: byWeek.map(([w]) => dLabel(w)), datasets: [
+      { type: 'line', label: 'ROI', data: byWeek.map(([, t]) => t.roi), yAxisID: 'y2', borderColor: COLORS.roi, backgroundColor: COLORS.roi, pointRadius: 2, borderWidth: 2 },
+      { label: 'Profit After Ad Spend', data: byWeek.map(([, t]) => +t.profit.toFixed(2)), backgroundColor: byWeek.map(([, t]) => (t.profit < 0 ? COLORS.neg : COLORS.profit)) }] }, options: dualOpts() });
+    table($('tWeek'), [['Week of'], ['Days', 1], ['Ad Spend', 1], ['Net Revenue', 1], ['Profit', 1], ['ROI', 1], ['Sales', 1], ['CPA', 1]],
+      byWeek.map(([w, t]) => [`${dLabel(w)}, ${w.slice(0, 4)}`, t.days.size + (t.days.size < 7 ? ' (partial)' : ''), money(t.spend), money(t.net), `<span class="${cls(t.profit)}">${money(t.profit)}</span>`, roiCell(t.roi), INT.format(t.sales), money(t.cpa)]));
+
+    // daily detail
+    window.__ADS_ROWS = R; renderDaily();
+  };
+
+  const renderDaily = () => {
+    const R = [...(window.__ADS_ROWS || [])].sort((a, b) => b.date.localeCompare(a.date) || a.campaign.localeCompare(b.campaign));
+    const pages = Math.max(1, Math.ceil(R.length / PAGE)); page = Math.min(page, pages - 1);
+    const slice = R.slice(page * PAGE, page * PAGE + PAGE);
+    table($('tDaily'), [['Date'], ['Day'], ['Product'], ['Campaign'], ['Ad Spend', 1], ['Gross Revenue', 1], ['Refunds', 1], ['Chargebacks<span class="ext" title="Demo addition">◆</span>', 1], ['Net Revenue', 1], ['Profit', 1], ['ROI', 1], ['Sales', 1], ['Upsell Sales', 1], ['Upsell Rate', 1], ['CPA', 1], ['AOV', 1]],
+      slice.map(r => { const t = agg([r]); return [r.date, r.dow.slice(0, 3), r.product, r.campaign, money(r.spend), money(r.gross), money(r.refunds), money(r.cbs), money(t.net), `<span class="${cls(t.profit)}">${money(t.profit)}</span>`, roiCell(t.roi), INT.format(r.sales), INT.format(r.ups), pct(t.upRate), money(t.cpa), money(t.aov)]; }));
+    $('pinfo').textContent = R.length ? `Rows ${page * PAGE + 1}–${page * PAGE + slice.length} of ${INT.format(R.length)} · page ${page + 1} of ${pages}` : '';
+    $('prev').disabled = page === 0; $('next').disabled = page >= pages - 1;
+  };
+
+  const fillFilters = () => {
+    const months = [...new Set(ALL.map(r => r.month))].sort(), prods = [...new Set(ALL.map(r => r.product))].sort(), camps = [...new Set(ALL.map(r => r.campaign))].sort();
+    $('fMonth').innerHTML = '<option value="">All months</option>' + months.map(m => `<option value="${m}">${mLabel(m)}</option>`).join('');
+    $('fProduct').innerHTML = '<option value="">All products</option>' + prods.map(p => `<option>${p}</option>`).join('');
+    $('campList').innerHTML = camps.map(c => `<option value="${c}">`).join('');
+    const d = ALL.map(r => r.date).sort(); for (const id of ['fStart', 'fEnd']) { $(id).min = d[0]; $(id).max = d[d.length - 1]; }
+  };
+
+  const load = async () => {
+    $('err').textContent = ''; $('reload').disabled = true;
+    try { const res = await fetch('data/daily-performance.csv', { cache: 'no-store' }); if (!res.ok) throw new Error('HTTP ' + res.status);
+      ALL = parse(await res.text()); if (!ALL.length) throw new Error('The CSV has no data rows.'); fillFilters(); page = 0; render(); }
+    catch (e) { $('err').textContent = 'Could not load the demo data (' + e.message + ').'; }
+    finally { $('reload').disabled = false; }
+  };
+
+  ['fStart', 'fEnd', 'fMonth', 'fProduct'].forEach(id => $(id).addEventListener('change', () => { page = 0; render(); }));
+  $('fCamp').addEventListener('input', () => { page = 0; render(); });
+  $('clear').addEventListener('click', () => { ['fStart', 'fEnd', 'fMonth', 'fProduct', 'fCamp'].forEach(id => ($(id).value = '')); page = 0; render(); });
+  $('prev').addEventListener('click', () => { page--; renderDaily(); });
+  $('next').addEventListener('click', () => { page++; renderDaily(); });
+  $('reload').addEventListener('click', load);
+  load();
+})();
+</script>
+</body>
+</html>
